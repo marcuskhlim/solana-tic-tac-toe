@@ -1,0 +1,13 @@
+# Binaries for programs and local builds
+**/target/
+**/build/
+**/node_modules/
+
+# Miscellaneous
+.DS_Store
+*.log
+
+# Anchor specific
+test-ledger/
+.mv/
+.anchor/

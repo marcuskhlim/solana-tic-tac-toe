@@ -3,7 +3,7 @@
   	"build": {
     "dockerfile": "Dockerfile",
     "args": {
-      "DISABLE_AVX2": "false"  // Set to "true" if you want to disable AVX2
+      "DISABLE_AVX2": "true"  // Set to "true" if you want to disable AVX2
     }
   }
 }

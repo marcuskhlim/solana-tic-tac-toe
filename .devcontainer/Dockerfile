@@ -35,6 +35,7 @@ ARG DISABLE_AVX2=false
 
 # Conditionally set RUSTFLAGS and build the project
 RUN if [ "$DISABLE_AVX2" = "true" ]; then \
+      export RUST_REED_SOLOMON_ERASURE_ARCH=native && \
       export RUSTFLAGS="-C target-cpu=native -C target-feature=-avx2" && \
       echo "Building without AVX2 support"; \
     else \
