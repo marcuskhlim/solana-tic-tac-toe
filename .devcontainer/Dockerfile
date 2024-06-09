@@ -30,8 +30,12 @@ RUN git clone https://github.com/solana-labs/solana.git /solana
 
 WORKDIR /solana
 
+RUN git checkout v1.18.14
+
 # Define an argument to control AVX2 disabling
 ARG DISABLE_AVX2=false
+
+#ENV CARGO_INSTALL_ROOT=/solana/target/release
 
 # Conditionally set RUSTFLAGS and build the project
 RUN if [ "$DISABLE_AVX2" = "true" ]; then \
@@ -41,13 +45,18 @@ RUN if [ "$DISABLE_AVX2" = "true" ]; then \
     else \
       echo "Building with AVX2 support"; \
     fi && \
-    cargo build --release
+    cargo build --all --release
+
+
 
 # Add Solana binaries to PATH
 ENV PATH="/solana/target/release:${PATH}"
 
 WORKDIR /workspace
 
-RUN cargo install --git https://github.com/project-serum/anchor --tag v0.26.0 anchor-cli
+RUN cargo install --git https://github.com/project-serum/anchor --tag v0.28.0 anchor-cli
 
 RUN npm install --global yarn
+
+RUN mkdir -p /solana/target/release/sdk/ && \
+    cp -r /solana/sdk/* /solana/target/release/sdk/
