@@ -8,19 +8,32 @@ declare_id!("Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS");
 pub mod mysolanaproject {
     use super::*;
 
-    pub fn setup_game(ctx: Context<SetupGame>,player_two_pubkey: Pubkey) -> Result<()> {
+    pub fn setup_game(ctx: Context<SetupGame>,player_two_pubkey: Pubkey, _game_id: String) -> Result<()> {
         let player_one = &ctx.accounts.player_one;
         let player_one_pubkey = player_one.key();
         let game = &mut ctx.accounts.game;
         game.start([player_one_pubkey, player_two_pubkey])
     }
+
+    pub fn play(ctx: Context<Play>, tile: Tile) -> Result<()> {
+        let game = &mut ctx.accounts.game;
+
+        require_keys_eq!(
+            game.current_player(),
+            ctx.accounts.player.key(),
+            TicTacToeError::NotPlayersTurn
+        );
+
+        game.play(&tile)
+    }
 }
 
 #[derive(Accounts)]
+#[instruction(player_two_pubkey: Pubkey, _game_id: String)]
 pub struct SetupGame<'info> {
     #[account(init,  
     payer = player_one, space = 8 + Game::MAXIMUM_SIZE,
-    seeds = [b"game", player_one.key().as_ref()],bump)]
+    seeds = [b"game", player_one.key().as_ref(), _game_id.as_bytes()],bump)]
     pub game: Account<'info, Game>,
     #[account(mut)]
     pub player_one: Signer<'info>,
@@ -33,6 +46,13 @@ pub struct Game {
     turn: u8,                      // 1
     board: [[Option<Sign>; 3]; 3], // 9 * (1 + 1) = 18
     state: GameState,              // 32 + 1
+}
+
+#[derive(Accounts)]
+pub struct Play<'info> {
+    #[account(mut)]
+    pub game: Account<'info, Game>,
+    pub player: Signer<'info>,
 }
 
 #[derive(AnchorSerialize, AnchorDeserialize, Clone, PartialEq)]
@@ -55,6 +75,7 @@ pub enum Sign {
 }
 
 /// A tile on the game board.
+#[derive(AnchorSerialize, AnchorDeserialize)]
 pub struct Tile {
     row: u8,
     column: u8,
